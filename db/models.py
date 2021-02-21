@@ -1,43 +1,61 @@
-from __future__ import annotations
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
+from .schemas import UserBase, GameBase, QuestionBase, AnswerBase
 
 
-class User(Base):
+class Fillable:
+    id = Column("id", Integer, primary_key=True)
+
+    def fill(self, schema: BaseModel):
+        for key, value in schema.dict().items():
+            if value is not None:
+                self.__setattr__(key, value)
+
+
+class User(Fillable, Base):
     __tablename__ = "users"
 
-    id = Column("id", Integer, primary_key=True)
-    firstname = Column("firstname", String(255))
-    lastname = Column("lastname", String(255))
-    email = Column("email", String(255))
-    password = Column("password", String(255))
-    is_active = Column("is_active", Boolean)
-    is_super = Column("is_super", Boolean)
+    firstname = Column("firstname", String(255), nullable=False)
+    lastname = Column("lastname", String(255), nullable=False)
+    email = Column("email", String(255), nullable=False)
+    password = Column("password", String(255), nullable=False)
+    is_active = Column("is_active", Boolean, default=True, nullable=False)
+    is_super = Column("is_super", Boolean, default=False, nullable=False)
     games = relationship("Game", back_populates="player")
 
+    def fill(self, schema: UserBase):
+        super().fill(schema)
 
-class Game(Base):
+
+class Game(Fillable, Base):
     __tablename__ = "games"
 
-    id = Column("id", Integer, primary_key=True)
-    player_id = Column(Integer, ForeignKey('users.id'))
+    player_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     player = relationship("User", back_populates="games")
 
+    def fill(self, schema: GameBase):
+        super().fill(schema)
 
-class Question(Base):
+
+class Question(Fillable, Base):
     __tablename__ = "questions"
 
-    id = Column("id", Integer, primary_key=True)
-    text = Column("text", Text)
-    answers = relationship("Answer", back_populates="answers")
+    text = Column("text", Text, nullable=False)
+    answers = relationship("Answer", back_populates="question")
     correct_answer = relationship("Answer")
 
+    def fill(self, schema: QuestionBase):
+        super().fill(schema)
 
-class Answer(Base):
+
+class Answer(Fillable, Base):
     __tablename__ = "answers"
 
-    id = Column("id", Integer, primary_key=True)
-    text = Column("text", Text)
-    question_id = Column(Integer, ForeignKey('questions.id'))
+    text = Column("text", Text, nullable=False)
+    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
     question = relationship("Question", back_populates="answers")
+
+    def fill(self, schema: AnswerBase):
+        super().fill(schema)

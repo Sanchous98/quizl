@@ -1,25 +1,26 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
+from db.repository import User as UserCRUD
 from db.schemas import User, UserCreate, UserUpdate
 from dependencies import database
-from db.crud import User as UserCRUD
 
 router = APIRouter()
+repo = UserCRUD(next(database()))
 
 
 @router.post("/")
-def create(user: UserCreate, db: Session = Depends(database)) -> User:
-    db_user = UserCRUD.get_user_by_email(db, user.email)
+def create(user: UserCreate) -> User:
+    db_user = repo.get_by_email(user.email)
+
     if db_user is not None:
         raise HTTPException(400, "Email already registered")
 
-    return UserCRUD.register(db, user)
+    return repo.create(user)
 
 
 @router.get("/{user_id}")
-def retrieve(user_id: int, db: Session = Depends(database)) -> User:
-    db_user = UserCRUD.get(db, user_id)
+def retrieve(user_id: int) -> User:
+    db_user = repo.get(user_id)
 
     if db_user is None:
         raise HTTPException(400, "User not found")
@@ -28,17 +29,18 @@ def retrieve(user_id: int, db: Session = Depends(database)) -> User:
 
 
 @router.get("/")
-def retrieve_all(db: Session = Depends(database)) -> List[User]:
-    return UserCRUD.get_all(db)
+def retrieve_all() -> List[User]:
+    return repo.all()
 
 
 @router.put("/{user_id}")
-def update(user_id: int, user: UserUpdate, db: Session = Depends(database)) -> User:
-    UserCRUD.update(db, user_id, user)
+def update(user_id: int, user: UserUpdate) -> User:
+    db_user = repo.get(user_id)
+    db_user.fill(user)
 
-    return UserCRUD.get(db, user_id)
+    return db_user
 
 
-@router.delete("/{user}")
-def delete(user: User, db: Session = Depends(database)):
-    UserCRUD.drop(db, user.id)
+@router.delete("/{user_id}")
+def delete(user_id: int):
+    repo.drop(user_id)
