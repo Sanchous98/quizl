@@ -1,13 +1,12 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from starlette.responses import JSONResponse
-from db import models
 from db.repositories import User as UserRepository
 from db.schemas import User, UserCreate, UserUpdate
 from dependencies import database
 
 router = APIRouter()
-repo = UserRepository(next(database()), models.User)
+repo = UserRepository(next(database()))
 
 
 @router.post("/")
