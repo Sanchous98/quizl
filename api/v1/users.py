@@ -1,11 +1,13 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
-from db.repository import User as UserCRUD
+from starlette.responses import JSONResponse
+from db import models
+from db.repositories import User as UserRepository
 from db.schemas import User, UserCreate, UserUpdate
 from dependencies import database
 
 router = APIRouter()
-repo = UserCRUD(next(database()))
+repo = UserRepository(next(database()), models.User)
 
 
 @router.post("/")
@@ -44,3 +46,5 @@ def update(user_id: int, user: UserUpdate) -> User:
 @router.delete("/{user_id}")
 def delete(user_id: int):
     repo.drop(user_id)
+
+    return JSONResponse()

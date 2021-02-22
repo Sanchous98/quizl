@@ -20,9 +20,6 @@ class QuestionCreate(QuestionBase):
 class Question(QuestionBase, UpdateBase):
     id: int
 
-    class Config:
-        orm_mode = True
-
 
 class QuestionUpdate(Question, QuestionCreate):
     pass
@@ -48,8 +45,16 @@ class GameBase(BaseModel):
     pass
 
 
+class GameCreate(GameBase):
+    pass
+
+
 class Game(GameBase, UpdateBase):
     player: User
+
+
+class GameUpdate(Game, GameCreate):
+    pass
 
 
 class UserBase(BaseModel):
@@ -63,6 +68,7 @@ class UserCreate(UserBase):
 
 
 class User(UserBase, UpdateBase):
+    id: int
     is_active: bool
     games: List[Game] = []
 
