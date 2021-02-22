@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    image: library/python:3.9-alpine
+    image: python:3.9-alpine
     working_dir: /app
     env_file:
       - .env
