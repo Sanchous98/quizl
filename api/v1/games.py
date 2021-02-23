@@ -1,13 +1,12 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from starlette.responses import JSONResponse
-from db import models
 from db.repositories import Game as GameRepository
 from db.schemas import Game, GameCreate, GameUpdate
 from dependencies import database
 
 router = APIRouter()
-repo = GameRepository(next(database()), models.Game)
+repo = GameRepository(next(database()))
 
 
 @router.post("/")
