@@ -1,4 +1,4 @@
-from typing import List, Type, TypeVar, Generic, Optional
+from typing import List, Type, TypeVar, Generic, Optional, overload
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from . import models, schemas
@@ -38,6 +38,15 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
 
 
 class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
+    def __init__(self, db: Session):
+        super().__init__(db, models.User)
+
+    def login(self, username: str, password: str) -> Optional[modelType]:
+        return self.db.query(self.model).filter(self.model.username == username and self.model.password == password).first()
+
+    def get_by_username(self, username: str):
+        return self.db.query(self.model).filter(self.model.username == username)
+
     def get_by_email(self, email: str) -> Optional[modelType]:
         return self.db.query(self.model).filter(self.model.email == email).first()
 
@@ -46,12 +55,15 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
 
 
 class Question(Repository[models.Question, schemas.QuestionBase, schemas.QuestionUpdate]):
-    pass
+    def __init__(self, db: Session):
+        super().__init__(db, models.Question)
 
 
 class Answer(Repository[models.Answer, schemas.AnswerBase, schemas.AnswerUpdate]):
-    pass
+    def __init__(self, db: Session):
+        super().__init__(db, models.Answer)
 
 
 class Game(Repository[models.Game, schemas.GameBase, schemas.GameUpdate]):
-    pass
+    def __init__(self, db: Session):
+        super().__init__(db, models.Game)

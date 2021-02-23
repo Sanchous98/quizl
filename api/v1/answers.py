@@ -1,13 +1,12 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from starlette.responses import JSONResponse
-from db import models
 from db.repositories import Answer as AnswerRepository
 from db.schemas import Answer, AnswerCreate, AnswerUpdate
 from dependencies import database
 
 router = APIRouter()
-repo = AnswerRepository(next(database()), models.Answer)
+repo = AnswerRepository(next(database()))
 
 
 @router.post("/")

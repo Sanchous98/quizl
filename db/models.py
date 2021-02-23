@@ -22,7 +22,8 @@ class User(Fillable[UserBase], Base):
 
     firstname = Column("firstname", String(255), nullable=False)
     lastname = Column("lastname", String(255), nullable=False)
-    email = Column("email", String(255), nullable=False)
+    username = Column("username", String(255), nullable=False, unique=True)
+    email = Column("email", String(255), nullable=False, unique=True)
     password = Column("password", String(255), nullable=False)
     is_active = Column("is_active", Boolean, default=True, nullable=False)
     is_super = Column("is_super", Boolean, default=False, nullable=False)
