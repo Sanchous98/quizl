@@ -1,5 +1,5 @@
-import base64
-import os
+from base64 import b64decode
+from os import getenv
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -14,55 +14,51 @@ security = HTTPBasic()
 repo = UserRepository(next(database()))
 
 
-@router.post("/token", response_model=Token)
-async def receive_token(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+@router.post("/token")
+def receive_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     user = repo.login(form_data.username, form_data.password)
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if user is None:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE")))
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE")))
+    access_token = create_access_token({"sub": user.username}, access_token_expires)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
 
 @router.get("/logout")
 async def logout() -> RedirectResponse:
-    response = RedirectResponse(url="/")
-    response.delete_cookie("Authorization", domain="localtest.me")
+    response = RedirectResponse(url="/docs")
+    response.delete_cookie("Authorization", domain="localhost")
 
     return response
 
 
 @router.get("/login")
-async def basic_auth(auth: BasicAuth = Depends(basic_auth)):
+def basic_auth(auth: BasicAuth = Depends(basic_auth)) -> RedirectResponse:
+    headers: dict = {"WWW-Authenticate": "Basic"}
+
     if not auth:
-        response = Response(headers={"WWW-Authenticate": "Basic"}, status_code=401)
-        return response
+        raise HTTPException(status_code=401, detail="Unauthorized", headers=headers)
 
-    try:
-        decoded = base64.b64decode(auth).decode("ascii")
-        username, _, password = decoded.partition(":")
-        user = repo.login(username, password)
-        if not user:
-            raise HTTPException(status_code=400, detail="Incorrect email or password")
+    username, _, password = b64decode(auth).decode("ascii").partition(":")
 
-        access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE")))
-        access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+    if repo.login(username, password) is None:
+        raise HTTPException(status_code=401, detail="Invalid username or password", headers=headers)
 
-        token = jsonable_encoder(access_token)
+    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE")))
+    access_token = create_access_token({"sub": username}, access_token_expires)
 
-        response = RedirectResponse(url="/docs")
-        response.set_cookie(
-            "Authorization",
-            value=f"Bearer {token}",
-            domain="localtest.me",
-            httponly=True,
-            max_age=1800,
-            expires=1800,
-        )
-        return response
+    response = RedirectResponse(url="/docs")
+    response.set_cookie(
+        "Authorization",
+        value=f"Bearer {jsonable_encoder(access_token)}",
+        domain="localhost",
+        httponly=True,
+        max_age=1800,
+        expires=1800
+    )
 
-    except HTTPException:
-        return Response(headers={"WWW-Authenticate": "Basic"}, status_code=401)
+    return response
+

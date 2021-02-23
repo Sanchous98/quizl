@@ -1,4 +1,4 @@
-from typing import List, Type, TypeVar, Generic, Optional
+from typing import List, Type, TypeVar, Generic, Optional, overload
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from . import models, schemas

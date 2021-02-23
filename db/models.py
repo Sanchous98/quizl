@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
@@ -11,7 +11,7 @@ modelType = TypeVar("modelType", bound=BaseModel)
 class Fillable(Generic[modelType]):
     id = Column("id", Integer, primary_key=True)
 
-    def fill(self, schema: Type[modelType]):
+    def fill(self, schema: modelType):
         for key, value in schema.dict().items():
             if value is not None:
                 self.__setattr__(key, value)
