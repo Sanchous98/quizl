@@ -1,9 +1,10 @@
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from dependencies import database
+from exceptions import BadRequestException
 from starlette.responses import JSONResponse
 from db.repositories import User as UserRepository
 from db.schemas import User, UserCreate, UserUpdate
-from dependencies import database
 
 router = APIRouter()
 repo = UserRepository(next(database()))
@@ -11,10 +12,11 @@ repo = UserRepository(next(database()))
 
 @router.post("/")
 def create(user: UserCreate) -> User:
-    db_user = repo.get_by_email(user.email)
+    if repo.get_by_email(user.email) is not None:
+        raise BadRequestException("Email already registered")
 
-    if db_user is not None:
-        raise HTTPException(400, "Email already registered")
+    if repo.get_by_username(user.username) is not None:
+        raise BadRequestException("Username already exists")
 
     return repo.create(user)
 
@@ -24,7 +26,7 @@ def retrieve(user_id: int) -> User:
     db_user = repo.get(user_id)
 
     if db_user is None:
-        raise HTTPException(400, "User not found")
+        raise BadRequestException("User not found")
 
     return db_user
 
