@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from . import users, questions, answers, games
+from . import users, questions, answers, games, auth
 
 router = APIRouter()
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
