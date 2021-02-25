@@ -25,7 +25,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
         instance = self.model()
         instance.fill(schema)
         self.db.add(instance)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(instance)
 
         return instance

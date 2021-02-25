@@ -16,8 +16,8 @@ from dependencies import database
 
 
 class BasicAuth(SecurityBase):
-    def __init__(self, scheme_name: str = __class__.__name__, auto_error: bool = True):
-        self.scheme_name = scheme_name
+    def __init__(self, scheme_name: str = "", auto_error: bool = True):
+        self.scheme_name = scheme_name or self.__class__.__name__
         self.auto_error = auto_error
 
     async def __call__(self, request: Request) -> Optional[str]:
