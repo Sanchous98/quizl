@@ -3,12 +3,13 @@ from base64 import b64decode
 from datetime import timedelta
 from dependencies import database
 from fastapi import APIRouter, Depends
+from api.middlewares import basic_auth
 from exceptions import UnauthorizedException
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import RedirectResponse
 from db.repositories import User as UserRepository
 from fastapi.security import OAuth2PasswordRequestForm
-from api.security import BasicAuth, basic_auth, Token, create_access_token
+from api.security import BasicAuth, Token, create_access_token
 
 router = APIRouter()
 repo = UserRepository(next(database()))
