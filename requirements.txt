@@ -7,3 +7,4 @@ bcrypt>=3.0
 passlib~=1.7.4
 PyJWT~=2.0.1
 python-multipart>=0.0.5
+inflection~=0.5.1
