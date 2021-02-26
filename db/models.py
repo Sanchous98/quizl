@@ -39,7 +39,7 @@ class User(Fillable[UserBase], Base):
     password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_super = Column(Boolean, default=False, nullable=False)
-    games = relationship("Games", back_populates="players", secondary=users_games)
+    games = relationship("Game", back_populates="players", secondary=users_games)
     answers = relationship("Answer", back_populates="players", secondary=players_answers)
 
     def fill(self, schema: modelType):

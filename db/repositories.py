@@ -1,3 +1,5 @@
+from sqlalchemy import func
+
 from .models import Fillable
 from . import models, schemas
 from pydantic import BaseModel
@@ -45,8 +47,8 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
         super().__init__(db, models.User)
 
     def login(self, username: str, hashed_password: str) -> Optional[modelType]:
-        return self.db.query(self.model)\
-            .filter(self.model.username == username and self.model.password == hashed_password)\
+        return self.db.query(self.model) \
+            .filter(self.model.username == username and self.model.password == hashed_password) \
             .first()
 
     def create(self, schema: schemas.UserCreate) -> modelType:
@@ -68,6 +70,21 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
     def soft_delete(self, user_id: int):
         self.db.query(self.model).filter(self.model.id == user_id).update({models.User.is_active: False})
 
+    def get_points_by_user(self, game_id: Optional[int] = None) -> list[modelType]:
+        query: Query = self.db.query(self.model, func.sum(models.Question.points).label("points"))\
+            .join(models.User.answers)\
+            .join(models.Answer.question)\
+            .join(models.Question.game)\
+            .filter(models.Answer.right is True)\
+            .group_by(models.Game.id)\
+            .order_by("points")\
+
+        if game_id is not None:
+            query.filter(models.Game.id == game_id)
+
+        return query.all()
+
+
 
 class Question(Repository[models.Question, schemas.QuestionBase, schemas.QuestionUpdate]):
     def __init__(self, db: Session):
@@ -82,6 +99,3 @@ class Answer(Repository[models.Answer, schemas.AnswerBase, schemas.AnswerUpdate]
 class Game(Repository[models.Game, schemas.GameBase, schemas.GameUpdate]):
     def __init__(self, db: Session):
         super().__init__(db, models.Game)
-
-    def update(self, model_id: int, schema: updateSchema):
-        self.query().filter()
