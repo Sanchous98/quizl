@@ -17,6 +17,7 @@ class QuestionBase(BaseModel):
 
 class QuestionCreate(QuestionBase):
     points: int
+    answers: List[AnswerCreate] = []
 
 
 class Question(QuestionBase, UpdateBase):
@@ -53,7 +54,7 @@ class GameBase(BaseModel):
 
 
 class GameCreate(GameBase):
-    pass
+    questions: List[QuestionCreate] = []
 
 
 class Game(GameBase, UpdateBase):
