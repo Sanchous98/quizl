@@ -1,18 +1,18 @@
-import os
-from datetime import datetime, timedelta
-from typing import Optional, Union
-from jwt import encode, decode
-from fastapi import Depends, HTTPException
-from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel, OAuthFlowPassword
-from fastapi.security import OAuth2
-from fastapi.security.base import SecurityBase
-from fastapi.security.utils import get_authorization_scheme_param
-from passlib.context import CryptContext
-from pydantic import BaseModel
-from starlette.requests import Request
+from os import getenv
 from db import models
+from typing import Optional
+from fastapi import Depends
+from jwt import encode, decode
+from pydantic import BaseModel
 from db.repositories import User
 from dependencies import database
+from fastapi.security import OAuth2
+from starlette.requests import Request
+from datetime import datetime, timedelta
+from exceptions import UnauthorizedException
+from fastapi.security.base import SecurityBase
+from fastapi.security.utils import get_authorization_scheme_param
+from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel, OAuthFlowPassword
 
 
 class BasicAuth(SecurityBase):
@@ -26,7 +26,7 @@ class BasicAuth(SecurityBase):
 
         if not authorization or scheme.lower() != "basic":
             if self.auto_error:
-                raise HTTPException(status_code=401, detail="Unauthorized")
+                raise UnauthorizedException(detail="Unauthorized")
             else:
                 return None
 
@@ -61,7 +61,7 @@ class OAuth2PasswordBearerCookie(OAuth2):
 
         if not authorization or scheme.lower() != "bearer":
             if self.auto_error:
-                raise HTTPException(status_code=401, detail="Unauthorized")
+                raise UnauthorizedException()
             else:
                 return None
 
@@ -83,12 +83,12 @@ repo = User(next(database()))
 
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=15)):
-    return encode(data.copy().update({"exp": datetime.utcnow() + expires_delta}), os.getenv("SECRET_KEY"), algorithm="HS256")
+    return encode(data.copy().update({"exp": datetime.utcnow() + expires_delta}), getenv("SECRET_KEY"), algorithm="HS256")
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(status_code=401, detail="Could not validate credentials")
-    payload = decode(token, os.getenv("SECRET_KEY"), algorithms=["HS256"])
+    credentials_exception = UnauthorizedException(detail="Could not validate credentials")
+    payload = decode(token, getenv("SECRET_KEY"), algorithms=["HS256"])
     username: str = payload.get("sub")
 
     if username is None:
@@ -105,10 +105,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 async def get_current_active_user(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_active:
-        raise HTTPException(status_code=401, detail="Inactive user")
+        raise UnauthorizedException(detail="Inactive user")
 
     return current_user
-
-
-def hash_password(password: Union[str, bytes]) -> str:
-    return CryptContext(schemes=["bcrypt"], deprecated="auto").hash(password)

@@ -1,11 +1,11 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Depends
-from starlette.responses import JSONResponse
-
+from dependencies import database
 from api.middlewares import is_admin
+from fastapi import APIRouter, Depends
+from exceptions import BadRequestException
+from starlette.responses import JSONResponse
 from db.repositories import Question as QuestionRepository
 from db.schemas import Question, QuestionCreate, QuestionUpdate
-from dependencies import database
 
 router = APIRouter()
 repo = QuestionRepository(next(database()))
@@ -21,7 +21,7 @@ def retrieve(question_id: int) -> Question:
     db_question = repo.get(question_id)
 
     if db_question is None:
-        raise HTTPException(400, "Question not found")
+        raise BadRequestException("Question not found")
 
     return db_question
 
