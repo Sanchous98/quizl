@@ -1,16 +1,17 @@
 from typing import List
-from fastapi import APIRouter, HTTPException
+from dependencies import database
+from api.middlewares import is_admin
+from fastapi import APIRouter, Depends
+from exceptions import BadRequestException
 from starlette.responses import JSONResponse
-from db import models
 from db.repositories import Question as QuestionRepository
 from db.schemas import Question, QuestionCreate, QuestionUpdate
-from dependencies import database
 
 router = APIRouter()
-repo = QuestionRepository(next(database()), models.Question)
+repo = QuestionRepository(next(database()))
 
 
-@router.post("/")
+@router.post("/", dependencies=[Depends(is_admin)])
 def create(question: QuestionCreate) -> Question:
     return repo.create(question)
 
@@ -20,17 +21,17 @@ def retrieve(question_id: int) -> Question:
     db_question = repo.get(question_id)
 
     if db_question is None:
-        raise HTTPException(400, "Question not found")
+        raise BadRequestException("Question not found")
 
     return db_question
 
 
-@router.get("/")
+@router.get("/", dependencies=[Depends(is_admin)])
 def retrieve_all() -> List[Question]:
     return repo.all()
 
 
-@router.put("/{question_id}")
+@router.put("/{question_id}", dependencies=[Depends(is_admin)])
 def update(question_id: int, question: QuestionUpdate) -> Question:
     db_question = repo.get(question_id)
     db_question.fill(question)
@@ -38,7 +39,7 @@ def update(question_id: int, question: QuestionUpdate) -> Question:
     return db_question
 
 
-@router.delete("/{question_id}")
+@router.delete("/{question_id}", dependencies=[Depends(is_admin)])
 def delete(question_id: int):
     repo.drop(question_id)
 

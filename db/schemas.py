@@ -1,7 +1,8 @@
 from __future__ import annotations
 from abc import ABC
-from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
+from typing import List, Optional, Union
 
 
 class UpdateBase(ABC, BaseModel):
@@ -10,39 +11,45 @@ class UpdateBase(ABC, BaseModel):
 
 
 class QuestionBase(BaseModel):
-    pass
+    text: str
+    answers: List[AnswerCreate] = []
 
 
 class QuestionCreate(QuestionBase):
-    pass
+    points: int
 
 
 class Question(QuestionBase, UpdateBase):
     id: int
+    answers: List[Answer] = []
 
 
 class QuestionUpdate(Question, QuestionCreate):
-    pass
+    text: Optional[str]
+    answers: Optional[List[AnswerUpdate, AnswerCreate]] = []
+    points: Optional[int]
 
 
 class AnswerBase(BaseModel):
-    pass
+    text: str
 
 
 class AnswerCreate(AnswerBase):
-    pass
+    correct: bool
 
 
 class Answer(AnswerBase, UpdateBase):
-    pass
+    id: int
 
 
 class AnswerUpdate(Answer, AnswerCreate):
-    pass
+    text: Optional[str]
+    correct: Optional[bool]
 
 
 class GameBase(BaseModel):
-    pass
+    finishes_at: datetime
+    questions: List[QuestionCreate] = []
 
 
 class GameCreate(GameBase):
@@ -50,11 +57,13 @@ class GameCreate(GameBase):
 
 
 class Game(GameBase, UpdateBase):
-    player: User
+    id: int
+    questions: List[Question] = []
 
 
 class GameUpdate(Game, GameCreate):
-    pass
+    finishes_at: Optional[datetime]
+    questions: List[Union[QuestionCreate, QuestionUpdate]] = []
 
 
 class UserBase(BaseModel):
@@ -64,6 +73,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    username: str
     password: str
 
 
