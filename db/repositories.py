@@ -1,11 +1,10 @@
 from sqlalchemy import func
-
 from .models import Fillable
 from . import models, schemas
 from pydantic import BaseModel
 from .schemas import UpdateBase
 from sqlalchemy.orm import Session, Query
-from typing import List, Type, TypeVar, Generic, Optional
+from typing import Type, TypeVar, Generic, Optional
 
 modelType = TypeVar("modelType", bound=Fillable)
 baseSchema = TypeVar("baseSchema", bound=BaseModel)
@@ -20,8 +19,13 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
     def get(self, model_id: int) -> Optional[modelType]:
         return self.query().filter(self.model.id == model_id).first()
 
-    def all(self, skip: int = 0, limit: int = 100) -> List[modelType]:
-        return self.query().offset(skip).limit(limit).all()
+    def all(self, skip: int = 0, limit: Optional[int] = None) -> list[modelType]:
+        query: Query = self.query().offset(skip)
+
+        if limit is not None:
+            query.limit(limit)
+
+        return query.all()
 
     def create(self, schema: baseSchema) -> modelType:
         instance: modelType = self.model()
@@ -38,8 +42,8 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
     def drop(self, model_id: int):
         self.query().filter(self.model.id == model_id).delete()
 
-    def query(self) -> Query:
-        return self.db.query(self.model)
+    def query(self, *entities) -> Query:
+        return self.db.query(self.model, entities)
 
 
 class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
@@ -47,7 +51,7 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
         super().__init__(db, models.User)
 
     def login(self, username: str, hashed_password: str) -> Optional[modelType]:
-        return self.db.query(self.model) \
+        return self.query() \
             .filter(self.model.username == username and self.model.password == hashed_password) \
             .first()
 
@@ -61,29 +65,28 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
 
         return instance
 
-    def get_by_username(self, username: str):
-        return self.db.query(self.model).filter(self.model.username == username)
+    def get_by_username(self, username: str) -> Optional[modelType]:
+        return self.query().filter(self.model.username == username).first()
 
     def get_by_email(self, email: str) -> Optional[modelType]:
-        return self.db.query(self.model).filter(self.model.email == email).first()
+        return self.query().filter(self.model.email == email).first()
 
     def soft_delete(self, user_id: int):
-        self.db.query(self.model).filter(self.model.id == user_id).update({models.User.is_active: False})
+        self.query().filter(self.model.id == user_id).update({models.User.is_active: False})
 
-    def get_points_by_user(self, game_id: Optional[int] = None) -> list[modelType]:
-        query: Query = self.db.query(self.model, func.sum(models.Question.points).label("points"))\
-            .join(models.User.answers)\
-            .join(models.Answer.question)\
-            .join(models.Question.game)\
-            .filter(models.Answer.right is True)\
-            .group_by(models.Game.id)\
-            .order_by("points")\
+    def get_rankings(self, game_id: Optional[int] = None) -> list[modelType]:
+        query: Query = self.query(func.sum(models.Question.points).label("points")) \
+            .join(models.User.answers) \
+            .join(models.Answer.question) \
+            .join(models.Question.game) \
+            .filter(models.Answer.right is True) \
+            .group_by(models.Game.id) \
+            .order_by("points")
 
         if game_id is not None:
             query.filter(models.Game.id == game_id)
 
         return query.all()
-
 
 
 class Question(Repository[models.Question, schemas.QuestionBase, schemas.QuestionUpdate]):
