@@ -1,11 +1,10 @@
-from abc import ABC
-from .database import Base
-from pydantic import BaseModel
 from typing import TypeVar, Generic
-from dependencies import hash_password
-from sqlalchemy.orm import relationship
-from .schemas import UserBase, GameBase, QuestionBase, AnswerBase
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey, SmallInteger, DateTime, func, Table
+from sqlalchemy.orm import relationship
+from dependencies import hash_password
+from .database import Base
+from .schemas import UserBase, GameBase, QuestionBase, AnswerBase
 
 modelType = TypeVar("modelType", bound=BaseModel)
 users_games = Table(
@@ -21,7 +20,7 @@ players_answers = Table(
 )
 
 
-class Fillable(Generic[modelType], ABC):
+class Fillable(Generic[modelType]):
     id = Column(Integer, primary_key=True)
 
     def fill(self, schema: modelType):
@@ -31,6 +30,8 @@ class Fillable(Generic[modelType], ABC):
 
 
 class User(Fillable[UserBase], Base):
+    __tablename__ = "users"
+
     firstname = Column(String(255), nullable=False)
     lastname = Column(String(255), nullable=False)
     username = Column(String(255), nullable=False, unique=True)
@@ -47,6 +48,8 @@ class User(Fillable[UserBase], Base):
 
 
 class Game(Fillable[GameBase], Base):
+    __tablename__ = "games"
+
     players = relationship("User", back_populates="games", secondary=users_games)
     questions = relationship("Question", back_populates="game")
     created_at = Column(DateTime, nullable=False, default=func.now())
@@ -55,6 +58,8 @@ class Game(Fillable[GameBase], Base):
 
 
 class Question(Fillable[QuestionBase], Base):
+    __tablename__ = "questions"
+
     text = Column(Text, nullable=False)
     points = Column(SmallInteger, nullable=False, default=1)
     answers = relationship("Answer", back_populates="question")
@@ -63,6 +68,8 @@ class Question(Fillable[QuestionBase], Base):
 
 
 class Answer(Fillable[AnswerBase], Base):
+    __tablename__ = "answers"
+
     text = Column(Text, nullable=False)
     right = Column(Boolean, default=False, nullable=False)
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
