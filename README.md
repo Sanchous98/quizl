@@ -1,5 +1,7 @@
 # Quizl Tesk Task
 
+Make ```.env``` file, based on ```.env.example```
+
 ### Start with docker
 
 ```
