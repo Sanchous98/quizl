@@ -1,34 +1,12 @@
-from __future__ import annotations
 from abc import ABC
+from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List, Optional, Union
 
 
 class UpdateBase(ABC, BaseModel):
     class Config:
         orm_mode = True
-
-
-class QuestionBase(BaseModel):
-    text: str
-    answers: List[AnswerCreate] = []
-
-
-class QuestionCreate(QuestionBase):
-    points: int
-    answers: List[AnswerCreate] = []
-
-
-class Question(QuestionBase, UpdateBase):
-    id: int
-    answers: List[Answer] = []
-
-
-class QuestionUpdate(Question, QuestionCreate):
-    text: Optional[str]
-    answers: Optional[List[AnswerUpdate, AnswerCreate]] = []
-    points: Optional[int]
 
 
 class AnswerBase(BaseModel):
@@ -41,6 +19,7 @@ class AnswerCreate(AnswerBase):
 
 class Answer(AnswerBase, UpdateBase):
     id: int
+    correct: bool
 
 
 class AnswerUpdate(Answer, AnswerCreate):
@@ -48,23 +27,42 @@ class AnswerUpdate(Answer, AnswerCreate):
     correct: Optional[bool]
 
 
+class QuestionBase(BaseModel):
+    text: str
+
+
+class QuestionCreate(QuestionBase):
+    points: int
+    answers: list[AnswerCreate] = []
+
+
+class Question(QuestionBase, UpdateBase):
+    id: int
+    answers: list[Answer] = []
+
+
+class QuestionUpdate(Question, QuestionCreate):
+    text: Optional[str]
+    answers: Optional[list[AnswerUpdate]] = []
+    points: Optional[int]
+
+
 class GameBase(BaseModel):
     finishes_at: datetime
-    questions: List[QuestionCreate] = []
 
 
 class GameCreate(GameBase):
-    questions: List[QuestionCreate] = []
+    questions: list[QuestionCreate] = []
 
 
 class Game(GameBase, UpdateBase):
     id: int
-    questions: List[Question] = []
+    questions: list[Question] = []
 
 
 class GameUpdate(Game, GameCreate):
     finishes_at: Optional[datetime]
-    questions: List[Union[QuestionCreate, QuestionUpdate]] = []
+    questions: list[QuestionUpdate] = []
 
 
 class UserBase(BaseModel):
@@ -81,7 +79,7 @@ class UserCreate(UserBase):
 class User(UserBase, UpdateBase):
     id: int
     is_active: bool
-    games: List[Game] = []
+    games: list[Game] = []
 
 
 class UserUpdate(UserCreate, UpdateBase):

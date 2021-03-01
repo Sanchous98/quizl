@@ -1,11 +1,7 @@
 from os import getenv
-from db import models
+from jwt import encode
 from typing import Optional
-from fastapi import Depends
-from jwt import encode, decode
 from pydantic import BaseModel
-from db.repositories import User
-from dependencies import database
 from fastapi.security import OAuth2
 from starlette.requests import Request
 from datetime import datetime, timedelta
@@ -19,6 +15,7 @@ class BasicAuth(SecurityBase):
     def __init__(self, scheme_name: str = "", auto_error: bool = True):
         self.scheme_name = scheme_name or self.__class__.__name__
         self.auto_error = auto_error
+        self.model = SecurityBase()
 
     async def __call__(self, request: Request) -> Optional[str]:
         authorization: str = request.headers.get("Authorization")
