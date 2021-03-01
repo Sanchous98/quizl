@@ -22,7 +22,7 @@ def receive_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     if user is None:
         raise UnauthorizedException(detail="Incorrect username or password")
 
-    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE")))
+    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE", 60)))
     access_token = create_access_token({"sub": user.username}, access_token_expires)
 
     return Token(access_token=access_token, token_type="bearer")
@@ -48,7 +48,7 @@ def basic_auth(auth: BasicAuth = Depends(basic_auth)) -> RedirectResponse:
     if repo.login(username, password) is None:
         raise UnauthorizedException(detail="Invalid username or password", headers=headers)
 
-    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE")))
+    access_token_expires = timedelta(minutes=int(getenv("ACCESS_TOKEN_EXPIRE", 60)))
     access_token = create_access_token({"sub": username}, access_token_expires)
 
     response = RedirectResponse(url="/docs")
