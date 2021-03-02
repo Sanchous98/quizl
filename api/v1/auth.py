@@ -4,18 +4,18 @@ from datetime import timedelta
 from dependencies import database
 from fastapi import APIRouter, Depends
 from api.middlewares import basic_auth
-from exceptions import UnauthorizedException
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import RedirectResponse
 from db.repositories import User as UserRepository
 from fastapi.security import OAuth2PasswordRequestForm
 from api.security import BasicAuth, Token, create_access_token
+from exceptions import UnauthorizedException, ExceptionScheme, RedirectScheme
 
 router = APIRouter()
 repo = UserRepository(next(database()))
 
 
-@router.post("/token")
+@router.post("/token", responses={200: {"model": Token}, 401: {"model": ExceptionScheme}})
 def receive_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     user = repo.login(form_data.username, form_data.password)
 
@@ -28,7 +28,7 @@ def receive_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/logout")
+@router.get("/logout", response_model=RedirectScheme, responses={307: {"model": RedirectScheme}})
 async def logout() -> RedirectResponse:
     response = RedirectResponse(url="/docs")
     response.delete_cookie("Authorization", domain="localhost")
@@ -36,7 +36,7 @@ async def logout() -> RedirectResponse:
     return response
 
 
-@router.get("/login")
+@router.get("/login", responses={401: {"model": ExceptionScheme}, 307: {"model": RedirectScheme}})
 def basic_auth(auth: BasicAuth = Depends(basic_auth)) -> RedirectResponse:
     headers: dict = {"WWW-Authenticate": "Basic"}
 
