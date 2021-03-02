@@ -74,7 +74,7 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
     def soft_delete(self, user_id: int):
         self.query().filter(self.model.id == user_id).update({models.User.is_active: False})
 
-    def get_rankings(self, game_id: Optional[int] = None) -> list[modelType]:
+    def get_rankings(self, game_id: Optional[int] = None):
         query: Query = self.query(func.sum(models.Question.points).label("points")) \
             .join(models.User.answers) \
             .join(models.Answer.question) \
