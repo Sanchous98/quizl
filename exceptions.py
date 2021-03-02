@@ -1,4 +1,6 @@
+from pydantic import BaseModel
 from fastapi import HTTPException
+
 from typing import Any, Optional, Dict
 
 
@@ -15,3 +17,11 @@ class UnauthorizedException(HTTPException):
 class ForbiddenException(HTTPException):
     def __init__(self, detail: Any = "Forbidden", headers: Optional[Dict[str, Any]] = None):
         super().__init__(403, detail, headers)
+
+
+class ExceptionScheme(BaseModel):
+    detail: str
+
+
+class RedirectScheme(BaseModel):
+    url: str

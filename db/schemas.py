@@ -75,6 +75,9 @@ class UserCreate(UserBase):
     username: str
     password: str
 
+    class Config:
+        orm_mode = True
+
 
 class User(UserBase, UpdateBase):
     id: int
@@ -88,3 +91,7 @@ class UserUpdate(UserCreate, UpdateBase):
     email: Optional[str]
     password: Optional[str]
     is_active: Optional[bool]
+
+
+class Rank(User):
+    points: int
