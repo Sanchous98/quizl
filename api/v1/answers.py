@@ -17,7 +17,7 @@ def create(answer: AnswerCreate) -> Answer:
 
 @router.get("/{answer_id}", responses={200: {"model": Answer}, 400: {"model": ExceptionScheme}})
 def retrieve(answer_id: int) -> Answer:
-    db_answer = repo.get(answer_id)
+    db_answer = repo[answer_id]
 
     if db_answer is None:
         raise BadRequestException("Question not found")
@@ -40,7 +40,7 @@ def retrieve_all() -> list[Answer]:
     responses={200: {"model": Answer}, 403: {"model": ExceptionScheme}}
 )
 def update(answer_id: int, answer: AnswerUpdate) -> Answer:
-    db_answer = repo.get(answer_id)
+    db_answer = repo[answer_id]
     db_answer.fill(answer)
 
     return db_answer
