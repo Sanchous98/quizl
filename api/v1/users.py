@@ -1,5 +1,5 @@
-from typing import Union
-from dependencies import database
+from typing import Union, List
+from dependencies import database, hash_password
 from api.middlewares import is_admin
 from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
@@ -40,8 +40,8 @@ def retrieve(user_id: int, additional_info: bool = Depends(is_admin)) -> UserBas
     return User.from_orm(db_user)
 
 
-@router.get("/", response_model=list[User], responses={200: {"model": list[User]}})
-def retrieve_all() -> list[User]:
+@router.get("/", response_model=List[User], responses={200: {"model": List[User]}})
+def retrieve_all() -> List[User]:
     return repo.all()
 
 

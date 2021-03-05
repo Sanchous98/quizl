@@ -75,6 +75,7 @@ class TokenData(BaseModel):
 
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=15)):
-    return encode(
-        data.copy().update({"exp": datetime.utcnow() + expires_delta}), getenv("SECRET_KEY"), algorithm="HS256"
-    )
+    copy = data.copy()
+    copy.update({"exp": datetime.utcnow() + expires_delta})
+
+    return encode(copy, getenv("SECRET_KEY"))
