@@ -1,10 +1,9 @@
 from sqlalchemy import func
-
-from dependencies import hash_password
 from .models import Fillable
 from . import models, schemas
 from pydantic import BaseModel
 from .schemas import UpdateBase
+from dependencies import hash_password
 from sqlalchemy.orm import Session, Query
 from typing import Type, TypeVar, Generic, Optional
 
@@ -15,8 +14,30 @@ updateSchema = TypeVar("updateSchema", bound=UpdateBase)
 
 class Repository(Generic[modelType, baseSchema, updateSchema]):
     def __init__(self, db: Session, model: Type[modelType]):
+        super().__init__()
         self.db = db
         self.model = model
+
+    def __getitem__(self, model_id: int) -> modelType:
+        return self.get(model_id)
+
+    def __delitem__(self, model_id: int):
+        self.drop(model_id)
+
+    def __setitem__(self, model_id: int, schema: baseSchema):
+        if self.exists(model_id):
+            self.update(model_id, schema)
+
+        self.create(schema)
+
+    def __iter__(self):
+        return iter(self.all())
+
+    def __reversed__(self):
+        return reversed(self.all())
+
+    def __contains__(self, model: modelType) -> bool:
+        return self[model.id] == model
 
     def get(self, model_id: int) -> Optional[modelType]:
         return self.query().filter(self.model.id == model_id).first()
@@ -39,13 +60,16 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
         return instance
 
     def update(self, model_id: int, schema: updateSchema):
-        self.query().filter(self.model == model_id).update(schema.dict())
-
-    def drop(self, model_id: int):
-        self.query().filter(self.model.id == model_id).delete()
+        self.query().filter(self.model.id == model_id).update(schema.dict())
 
     def query(self, *entities) -> Query:
         return self.db.query(self.model, *entities)
+
+    def exists(self, model_id: int) -> bool:
+        return self.query().filter(self.model.id == model_id).exists()
+
+    def drop(self, model_id: int):
+        self.query().filter(self.model.id == model_id).delete()
 
 
 class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):

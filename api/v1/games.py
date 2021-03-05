@@ -19,7 +19,7 @@ def create(game: GameCreate) -> Game:
 
 @router.get("/{game_id}", responses={200: {"model": Game}, 400: {"model": ExceptionScheme}})
 def retrieve(game_id: int) -> Game:
-    db_game = repo.get(game_id)
+    db_game = repo[game_id]
 
     if db_game is None:
         raise BadRequestException("Game not found")
@@ -42,7 +42,7 @@ def retrieve_all() -> List[Game]:
     responses={200: {"model": Game}, 401: {"model": ExceptionScheme}}
 )
 def update(game_id: int, game: GameUpdate) -> Game:
-    db_game = repo.get(game_id)
+    db_game = repo[game_id]
     db_game.fill(game)
 
     return db_game

@@ -28,7 +28,7 @@ def create(user: UserCreate) -> User:
     responses={200: {"model": Union[User, UserCreate]}, 400: {"model": ExceptionScheme}}
 )
 def retrieve(user_id: int, additional_info: bool = Depends(is_admin)) -> UserBase:
-    db_user = repo.get(user_id)
+    db_user = repo[user_id]
 
     if db_user is None:
         raise BadRequestException("User not found")
@@ -47,7 +47,7 @@ def retrieve_all() -> List[User]:
 
 @router.put("/{user_id}", response_model=User, responses={200: {"model": User}})
 def update(user_id: int, user: UserUpdate) -> User:
-    db_user = repo.get(user_id)
+    db_user = repo[user_id]
     db_user.fill(user)
 
     return db_user
