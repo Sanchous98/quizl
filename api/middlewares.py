@@ -7,7 +7,7 @@ from dependencies import database
 from exceptions import ForbiddenException, UnauthorizedException
 from api.security import OAuth2PasswordBearerCookie, BasicAuth, TokenData
 
-oauth2_scheme = OAuth2PasswordBearerCookie(token_url="/token")
+oauth2_scheme = OAuth2PasswordBearerCookie(token_url="/api/v1/auth/token")
 basic_auth = BasicAuth(auto_error=False)
 repo = User(next(database()))
 

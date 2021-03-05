@@ -1,8 +1,9 @@
+from sqlalchemy import func
 from .models import Fillable
 from . import models, schemas
 from pydantic import BaseModel
 from .schemas import UpdateBase
-from sqlalchemy import func, desc
+from dependencies import hash_password
 from sqlalchemy.orm import Session, Query
 from typing import Type, TypeVar, Generic, Optional
 
@@ -62,7 +63,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
         self.query().filter(self.model.id == model_id).update(schema.dict())
 
     def query(self, *entities) -> Query:
-        return self.db.query(self.model, entities)
+        return self.db.query(self.model, *entities)
 
     def exists(self, model_id: int) -> bool:
         return self.query().filter(self.model.id == model_id).exists()
@@ -83,7 +84,8 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
     def create(self, schema: schemas.UserCreate) -> modelType:
         instance: models.User = self.model()
         instance.fill(schema)
-        instance.is_active = False
+        instance.is_super = False
+        instance.password = hash_password(schema.password)
         self.db.add(instance)
         self.db.flush()
         self.db.refresh(instance)

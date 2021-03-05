@@ -1,3 +1,4 @@
+from typing import List
 from dependencies import database
 from api.middlewares import is_admin
 from fastapi import APIRouter, Depends
@@ -28,9 +29,9 @@ def retrieve(answer_id: int) -> Answer:
 @router.get(
     "/",
     dependencies=[Depends(is_admin)],
-    responses={200: {"model": list[Answer]}, 403: {"model": ExceptionScheme}}
+    responses={200: {"model": List[Answer]}, 403: {"model": ExceptionScheme}}
 )
-def retrieve_all() -> list[Answer]:
+def retrieve_all() -> List[Answer]:
     return repo.all()
 
 
