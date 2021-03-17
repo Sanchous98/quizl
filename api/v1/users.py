@@ -24,7 +24,7 @@ def create(user: UserCreate) -> User:
 
 @router.get(
     "/{user_id}",
-    response_model=UserCreate,
+    response_model=User,
     responses={200: {"model": Union[User, UserCreate]}, 400: {"model": ExceptionScheme}}
 )
 def retrieve(user_id: int, additional_info: bool = Depends(is_admin)) -> UserBase:
