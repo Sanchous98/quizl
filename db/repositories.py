@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from .schemas import UpdateBase
 from dependencies import hash_password
 from sqlalchemy.orm import Session, Query
-from typing import Type, TypeVar, Generic, Optional
+from typing import Type, TypeVar, Generic, Optional, List
 
 modelType = TypeVar("modelType", bound=Fillable)
 baseSchema = TypeVar("baseSchema", bound=BaseModel)
@@ -42,7 +42,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
     def get(self, model_id: int) -> Optional[modelType]:
         return self.query().filter(self.model.id == model_id).first()
 
-    def all(self, skip: int = 0, limit: Optional[int] = None) -> list[modelType]:
+    def all(self, skip: int = 0, limit: Optional[int] = None) -> List[modelType]:
         query: Query = self.query().offset(skip)
 
         if limit is not None:

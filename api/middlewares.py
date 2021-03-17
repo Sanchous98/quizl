@@ -1,21 +1,22 @@
 from db import models
 from os import getenv
 from jwt import decode
+from typing import Optional
 from fastapi import Depends
 from db.repositories import User
 from dependencies import database
 from exceptions import ForbiddenException, UnauthorizedException
 from api.security import OAuth2PasswordBearerCookie, BasicAuth, TokenData
 
-oauth2_scheme = OAuth2PasswordBearerCookie(token_url="/api/v1/auth/token")
-basic_auth = BasicAuth(auto_error=False)
 repo = User(next(database()))
+basic_auth = BasicAuth(auto_error=False)
+oauth2_scheme = OAuth2PasswordBearerCookie(token_url="/api/v1/auth/token")
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = UnauthorizedException(detail="Could not validate credentials")
     payload = decode(token, getenv("SECRET_KEY"), algorithms=["HS256"])
-    username: str = payload.get("sub")
+    username: Optional[str] = payload.get("sub")
 
     if username is None:
         raise credentials_exception
