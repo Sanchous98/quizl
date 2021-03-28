@@ -33,17 +33,17 @@ class QuestionBase(BaseModel):
 
 class QuestionCreate(QuestionBase):
     points: int
-    answers: List[AnswerCreate] = []
+    answers: List[AnswerCreate]
 
 
 class Question(QuestionBase, UpdateBase):
     id: int
-    answers: List[Answer] = []
+    answers: List[Answer]
 
 
 class QuestionUpdate(Question, QuestionCreate):
     text: Optional[str]
-    answers: Optional[List[AnswerUpdate]] = []
+    answers: List[AnswerUpdate]
     points: Optional[int]
 
 
@@ -52,17 +52,17 @@ class GameBase(BaseModel):
 
 
 class GameCreate(GameBase):
-    questions: List[QuestionCreate] = []
+    questions: List[QuestionCreate]
 
 
 class Game(GameBase, UpdateBase):
     id: int
-    questions: List[Question] = []
+    questions: List[Question]
 
 
 class GameUpdate(Game, GameCreate):
     finishes_at: Optional[datetime]
-    questions: List[QuestionUpdate] = []
+    questions: List[QuestionUpdate]
 
 
 class UserBase(BaseModel):
@@ -74,6 +74,8 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     username: str
     password: str
+    is_active: bool = True
+    is_super: bool = False
 
     class Config:
         orm_mode = True
