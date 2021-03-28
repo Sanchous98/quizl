@@ -1,7 +1,7 @@
 from abc import ABC
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional, List
 
 
 class UpdateBase(ABC, BaseModel):
@@ -33,17 +33,17 @@ class QuestionBase(BaseModel):
 
 class QuestionCreate(QuestionBase):
     points: int
-    answers: list[AnswerCreate] = []
+    answers: List[AnswerCreate] = []
 
 
 class Question(QuestionBase, UpdateBase):
     id: int
-    answers: list[Answer] = []
+    answers: List[Answer] = []
 
 
 class QuestionUpdate(Question, QuestionCreate):
     text: Optional[str]
-    answers: Optional[list[AnswerUpdate]] = []
+    answers: Optional[List[AnswerUpdate]] = []
     points: Optional[int]
 
 
@@ -52,17 +52,17 @@ class GameBase(BaseModel):
 
 
 class GameCreate(GameBase):
-    questions: list[QuestionCreate] = []
+    questions: List[QuestionCreate] = []
 
 
 class Game(GameBase, UpdateBase):
     id: int
-    questions: list[Question] = []
+    questions: List[Question] = []
 
 
 class GameUpdate(Game, GameCreate):
     finishes_at: Optional[datetime]
-    questions: list[QuestionUpdate] = []
+    questions: List[QuestionUpdate] = []
 
 
 class UserBase(BaseModel):
@@ -84,7 +84,7 @@ class UserCreate(UserBase):
 class User(UserBase, UpdateBase):
     id: int
     is_active: bool
-    games: list[Game] = []
+    games: List[Game] = []
 
 
 class UserUpdate(UserCreate, UpdateBase):

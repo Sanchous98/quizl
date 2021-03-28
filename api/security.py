@@ -31,7 +31,10 @@ class BasicAuth(SecurityBase):
 
 
 class OAuth2PasswordBearerCookie(OAuth2):
-    def __init__(self, token_url: str, scheme_name: str = None, scopes: dict = None, auto_error: bool = True):
+    def __init__(self, token_url: str,
+                 scheme_name: Optional[str] = None,
+                 scopes: Optional[dict] = None,
+                 auto_error: bool = True):
         if scopes is None:
             scopes = {}
 
@@ -71,10 +74,11 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: str = None
+    username: Optional[str] = None
 
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=15)):
-    return encode(
-        data.copy().update({"exp": datetime.utcnow() + expires_delta}), getenv("SECRET_KEY"), algorithm="HS256"
-    )
+    copy = data.copy()
+    copy.update({"exp": datetime.utcnow() + expires_delta})
+
+    return encode(copy, getenv("SECRET_KEY"))

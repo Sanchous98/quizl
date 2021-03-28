@@ -1,3 +1,4 @@
+from typing import List
 from dependencies import database
 from api.middlewares import is_admin
 from fastapi import APIRouter, Depends
@@ -17,7 +18,7 @@ def create(answer: AnswerCreate) -> Answer:
 
 @router.get("/{answer_id}", responses={200: {"model": Answer}, 400: {"model": ExceptionScheme}})
 def retrieve(answer_id: int) -> Answer:
-    db_answer = repo.get(answer_id)
+    db_answer = repo[answer_id]
 
     if db_answer is None:
         raise BadRequestException("Question not found")
@@ -28,9 +29,9 @@ def retrieve(answer_id: int) -> Answer:
 @router.get(
     "/",
     dependencies=[Depends(is_admin)],
-    responses={200: {"model": list[Answer]}, 403: {"model": ExceptionScheme}}
+    responses={200: {"model": List[Answer]}, 403: {"model": ExceptionScheme}}
 )
-def retrieve_all() -> list[Answer]:
+def retrieve_all() -> List[Answer]:
     return repo.all()
 
 
@@ -40,7 +41,7 @@ def retrieve_all() -> list[Answer]:
     responses={200: {"model": Answer}, 403: {"model": ExceptionScheme}}
 )
 def update(answer_id: int, answer: AnswerUpdate) -> Answer:
-    db_answer = repo.get(answer_id)
+    db_answer = repo[answer_id]
     db_answer.fill(answer)
 
     return db_answer

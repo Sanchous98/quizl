@@ -1,5 +1,5 @@
-from typing import Union
-from dependencies import database
+from typing import Union, List
+from dependencies import database, hash_password
 from api.middlewares import is_admin
 from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
@@ -24,11 +24,11 @@ def create(user: UserCreate) -> User:
 
 @router.get(
     "/{user_id}",
-    response_model=UserCreate,
+    response_model=User,
     responses={200: {"model": Union[User, UserCreate]}, 400: {"model": ExceptionScheme}}
 )
 def retrieve(user_id: int, additional_info: bool = Depends(is_admin)) -> UserBase:
-    db_user = repo.get(user_id)
+    db_user = repo[user_id]
 
     if db_user is None:
         raise BadRequestException("User not found")
@@ -40,14 +40,14 @@ def retrieve(user_id: int, additional_info: bool = Depends(is_admin)) -> UserBas
     return User.from_orm(db_user)
 
 
-@router.get("/", response_model=list[User], responses={200: {"model": list[User]}})
-def retrieve_all() -> list[User]:
+@router.get("/", response_model=List[User], responses={200: {"model": List[User]}})
+def retrieve_all() -> List[User]:
     return repo.all()
 
 
 @router.put("/{user_id}", response_model=User, responses={200: {"model": User}})
 def update(user_id: int, user: UserUpdate) -> User:
-    db_user = repo.get(user_id)
+    db_user = repo[user_id]
     db_user.fill(user)
 
     return db_user
