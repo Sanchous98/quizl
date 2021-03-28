@@ -44,7 +44,9 @@ class User(Fillable[UserBase], Base):
 
     def __setattr__(self, key, value):
         if key == "password":
-            super().__setattr__(key, hash_password(value))
+            value = hash_password(value)
+
+        super().__setattr__(key, value)
 
 
 class Game(Fillable[GameBase], Base):
