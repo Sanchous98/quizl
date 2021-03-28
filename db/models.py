@@ -42,6 +42,12 @@ class User(Fillable[UserBase], Base):
     games = relationship("Game", back_populates="players", secondary=users_games)
     answers = relationship("Answer", back_populates="players", secondary=players_answers)
 
+    def __setattr__(self, key, value):
+        if key == "password":
+            value = hash_password(value)
+
+        super().__setattr__(key, value)
+
 
 class Game(Fillable[GameBase], Base):
     __tablename__ = "games"

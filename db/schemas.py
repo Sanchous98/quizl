@@ -74,6 +74,8 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     username: str
     password: str
+    is_active: bool = True
+    is_super: bool = False
 
     class Config:
         orm_mode = True

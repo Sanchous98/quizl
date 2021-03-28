@@ -84,8 +84,6 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
     def create(self, schema: schemas.UserCreate) -> modelType:
         instance: models.User = self.model()
         instance.fill(schema)
-        instance.is_super = False
-        instance.password = hash_password(schema.password)
         self.db.add(instance)
         self.db.flush()
         self.db.refresh(instance)
