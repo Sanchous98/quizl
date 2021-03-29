@@ -12,8 +12,26 @@ router = APIRouter()
 repo = GameRepository(next(database()))
 
 
-@router.post("/", dependencies=[Depends(is_admin)], responses={200: {"model": Game}, 401: {"model": ExceptionScheme}})
+@router.post("/", dependencies=[Depends(is_admin)],
+             responses={200: {"model": Game}, 400: {"model": ExceptionScheme}, 401: {"model": ExceptionScheme}})
 def create(game: GameCreate) -> Game:
+    if len(game.questions) == 0:
+        raise BadRequestException(detail="Game must have at least 1 question")
+
+    for question in game.questions:
+        has_correct_answer = False
+
+        if len(question.answers) < 2:
+            raise BadRequestException("Every question must have at least 2 answers")
+
+        for answer in question.answers:
+            if answer.correct:
+                has_correct_answer = True
+                break
+
+        if not has_correct_answer:
+            raise BadRequestException("Every question must have at least 1 correct answer")
+
     return repo.create(game)
 
 

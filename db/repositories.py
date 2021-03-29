@@ -3,16 +3,15 @@ from .models import Fillable
 from . import models, schemas
 from pydantic import BaseModel
 from .schemas import UpdateBase
-from dependencies import hash_password
 from sqlalchemy.orm import Session, Query
 from typing import Type, TypeVar, Generic, Optional, List
 
 modelType = TypeVar("modelType", bound=Fillable)
-baseSchema = TypeVar("baseSchema", bound=BaseModel)
+createSchema = TypeVar("createSchema", bound=BaseModel)
 updateSchema = TypeVar("updateSchema", bound=UpdateBase)
 
 
-class Repository(Generic[modelType, baseSchema, updateSchema]):
+class Repository(Generic[modelType, createSchema, updateSchema]):
     def __init__(self, db: Session, model: Type[modelType]):
         super().__init__()
         self.db = db
@@ -24,7 +23,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
     def __delitem__(self, model_id: int):
         self.drop(model_id)
 
-    def __setitem__(self, model_id: int, schema: baseSchema):
+    def __setitem__(self, model_id: int, schema: createSchema):
         if self.exists(model_id):
             self.update(model_id, schema)
 
@@ -50,7 +49,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
 
         return query.all()
 
-    def create(self, schema: baseSchema) -> modelType:
+    def create(self, schema: createSchema) -> modelType:
         instance: modelType = self.model()
         instance.fill(schema)
         self.db.add(instance)
@@ -72,7 +71,7 @@ class Repository(Generic[modelType, baseSchema, updateSchema]):
         self.query().filter(self.model.id == model_id).delete()
 
 
-class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
+class User(Repository[models.User, schemas.UserCreate, schemas.UserUpdate]):
     def __init__(self, db: Session):
         super().__init__(db, models.User)
 
@@ -81,7 +80,7 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
             .filter(self.model.username == username and self.model.password == hashed_password) \
             .first()
 
-    def create(self, schema: schemas.UserCreate) -> modelType:
+    def create(self, schema: createSchema) -> modelType:
         instance: models.User = self.model()
         instance.fill(schema)
         self.db.add(instance)
@@ -114,16 +113,16 @@ class User(Repository[models.User, schemas.UserBase, schemas.UserUpdate]):
         return query.all()
 
 
-class Question(Repository[models.Question, schemas.QuestionBase, schemas.QuestionUpdate]):
+class Question(Repository[models.Question, schemas.QuestionCreate, schemas.QuestionUpdate]):
     def __init__(self, db: Session):
         super().__init__(db, models.Question)
 
 
-class Answer(Repository[models.Answer, schemas.AnswerBase, schemas.AnswerUpdate]):
+class Answer(Repository[models.Answer, schemas.AnswerCreate, schemas.AnswerUpdate]):
     def __init__(self, db: Session):
         super().__init__(db, models.Answer)
 
 
-class Game(Repository[models.Game, schemas.GameBase, schemas.GameUpdate]):
+class Game(Repository[models.Game, schemas.GameCreate, schemas.GameUpdate]):
     def __init__(self, db: Session):
         super().__init__(db, models.Game)
