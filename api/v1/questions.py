@@ -17,7 +17,14 @@ repo = QuestionRepository(next(database()))
     responses={200: {"model": Question}, 401: {"model": ExceptionScheme}}
 )
 def create(question: QuestionCreate) -> Question:
-    return repo.create(question)
+    if len(question.answers) < 2:
+        raise BadRequestException("Every question must have at least 2 answers")
+
+    for answer in question.answers:
+        if answer.correct:
+            return repo.create(question)
+
+    raise BadRequestException("Every question must have at least 1 correct answer")
 
 
 @router.get("/{question_id}", responses={200: {"model": Question}, 400: {"model": ExceptionScheme}})
